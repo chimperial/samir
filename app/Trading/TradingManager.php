@@ -111,6 +111,8 @@ class TradingManager
      */
     public static function importRecentOrders(): void
     {
+        info('Starting to import recent orders...');
+        
         tap(
             Order::query()
                 ->where('status', '=', Order::STATUS_NEW)
@@ -120,15 +122,33 @@ class TradingManager
 
             function ($latestOrder) {
                 if ($latestOrder) {
+                    info(sprintf('Found latest order: ID %s, Update Time: %s', 
+                        $latestOrder->order_id, 
+                        $latestOrder->update_time
+                    ));
+                    
                     $orders = self::binance()->orders(self::$champion->symbol, $latestOrder->update_time);
+                    info(sprintf('Retrieved %d orders from Binance', count($orders)));
 
                     foreach ($orders as $order) {
+                        info(sprintf('Processing order: ID %s, Status: %s, Side: %s, Position: %s', 
+                            $order['orderId'],
+                            $order['status'],
+                            $order['side'],
+                            $order['positionSide']
+                        ));
+                        
                         $order['cumQty'] = $order['executedQty'];
                         self::upsertOrder($order);
+                        info(sprintf('Successfully upserted order: ID %s', $order['orderId']));
                     }
+                } else {
+                    info('No latest order found with status NEW');
                 }
             }
         );
+        
+        info('Completed importing recent orders');
     }
 
     /**
@@ -168,9 +188,28 @@ class TradingManager
     /**
      * @throws Exception
      */
+    private static function getPrecision(): int
+    {
+        switch (self::$champion->symbol) {
+            case 'BTCUSDT':
+                return 5;
+            case 'ETHUSDT':
+                return 3;
+            case 'BNBUSDT':
+                return 2;
+            case 'DOGEUSDT':
+                return 0;
+            default:
+                return 2;
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
     private static function minSize(): float
     {
-        return round(self::$champion->grind / self::currentPrice(), 2);
+        return round(self::$champion->grind / self::currentPrice(), self::getPrecision());
     }
 
     /**
@@ -195,6 +234,13 @@ class TradingManager
 
     private static function upsertOrder(array $data): void
     {
+        info('Attempting to upsert order:', [
+            'order_id' => $data['orderId'],
+            'symbol' => $data['symbol'],
+            'status' => $data['status'],
+            'champion_id' => self::$champion->id
+        ]);
+
         $order = Order::query()->upsert([
             [
                 'order_id' => $data['orderId'],
@@ -224,9 +270,11 @@ class TradingManager
                 'champion_id' => self::$champion->id
             ]
         ],
-            ['id'],
+            ['order_id'],
             ['status', 'avg_price', 'cum_qty', 'cum_quote', 'executed_qty', 'update_time', 'champion_id']
         );
+
+        info('Upsert result:', ['result' => $order]);
     }
 
     public static function test(): void
@@ -392,16 +440,33 @@ class TradingManager
             return false;
         }
 
-        // Retrieve latest short order in last 2 hours
-        return null === Order::query()
-                ->where('status', '=', Order::STATUS_FILLED)
-                ->where('position_side', '=', Order::POSITION_SIDE_SHORT)
-                ->where('side', '=', Order::SIDE_SELL)
-                ->where('symbol', '=', self::$champion->symbol)
-                ->where('champion_id', '=', self::$champion->id)
-                ->where('update_time', '>=', self::last2Hours())
-                ->orderByDesc('update_time')
-                ->first();
+        // Get the latest short order
+        $lastOrder = Order::query()
+            ->where('status', '=', Order::STATUS_FILLED)
+            ->where('position_side', '=', Order::POSITION_SIDE_SHORT)
+            ->where('side', '=', Order::SIDE_SELL)
+            ->where('symbol', '=', self::$champion->symbol)
+            ->where('champion_id', '=', self::$champion->id)
+            ->orderByDesc('update_time')
+            ->first();
+
+        if (!$lastOrder) {
+            return true;
+        }
+
+        // Check if price has increased 1% from last order
+        $currentPrice = self::currentPrice();
+        $lastOrderPrice = (float)$lastOrder->price;
+        $priceIncreasePercentage = (($currentPrice - $lastOrderPrice) / $lastOrderPrice) * 100;
+
+        info('Price check for short position:', [
+            'last_order_price' => $lastOrderPrice,
+            'current_price' => $currentPrice,
+            'price_increase_percentage' => $priceIncreasePercentage,
+            'should_open' => $priceIncreasePercentage >= 1
+        ]);
+
+        return $priceIncreasePercentage >= 1;
     }
 
     /** @noinspection DuplicatedCode */
@@ -411,19 +476,38 @@ class TradingManager
     public static function shouldOpenLong(): bool
     {
         if (self::binance()->hasLongProfit() || self::$champion->can_trade === false) {
+            info('Cannot open long: has profit or trading disabled');
             return false;
         }
 
-        // Retrieve latest long order in last 2 hours
-        return null === Order::query()
-                ->where('status', '=', Order::STATUS_FILLED)
-                ->where('position_side', '=', Order::POSITION_SIDE_LONG)
-                ->where('side', '=', Order::SIDE_BUY)
-                ->where('symbol', '=', self::$champion->symbol)
-                ->where('champion_id', '=', self::$champion->id)
-                ->where('update_time', '>=', self::last2Hours())
-                ->orderByDesc('update_time')
-                ->first();
+        // Get the latest long order
+        $lastOrder = Order::query()
+            ->where('status', '=', Order::STATUS_FILLED)
+            ->where('position_side', '=', Order::POSITION_SIDE_LONG)
+            ->where('side', '=', Order::SIDE_BUY)
+            ->where('symbol', '=', self::$champion->symbol)
+            ->where('champion_id', '=', self::$champion->id)
+            ->orderByDesc('update_time')
+            ->first();
+
+        if (!$lastOrder) {
+            info('No previous long order found, can open new position');
+            return true;
+        }
+
+        // Check if price has dropped 1% from last order
+        $currentPrice = self::currentPrice();
+        $lastOrderPrice = (float)$lastOrder->price;
+        $priceDropPercentage = (($lastOrderPrice - $currentPrice) / $lastOrderPrice) * 100;
+
+        info('Price check for long position:', [
+            'last_order_price' => $lastOrderPrice,
+            'current_price' => $currentPrice,
+            'price_drop_percentage' => $priceDropPercentage,
+            'should_open' => $priceDropPercentage >= 1
+        ]);
+
+        return $priceDropPercentage >= 1;
     }
 
     private static function last2Hours(): int
