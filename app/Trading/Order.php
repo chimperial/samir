@@ -11,6 +11,10 @@ class Order extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'order_id';
+
+    public $incrementing = false;
+
     const STATUS_NEW = 0;
     const STATUS_FILLED = 1;
     const STATUS_CLOSED = 2;

@@ -32,13 +32,23 @@ class FuturesImport extends Command
      */
     public function handle(ChampionManager $championManager): void
     {
-
+        $this->info('Starting futures import process...');
+        
         $champions = $championManager->getActiveFarmers();
+        $this->info(sprintf('Found %d active farmers', $champions->count()));
 
         $champions->each(function ($champion) {
-            TradingManager::useChampion($champion);
-            TradingManager::importRecentOrders();
+            $this->info(sprintf('Processing champion: %s', $champion->name));
+            
+            try {
+                TradingManager::useChampion($champion);
+                $result = TradingManager::importRecentOrders();
+                $this->info(sprintf('Successfully imported orders for %s', $champion->name));
+            } catch (Exception $e) {
+                $this->error(sprintf('Error processing champion %s: %s', $champion->name, $e->getMessage()));
+            }
         });
 
+        $this->info('Futures import process completed');
     }
 }

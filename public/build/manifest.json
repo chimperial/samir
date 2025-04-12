@@ -449,12 +449,12 @@
       "resources/js/app.js"
     ]
   },
-  "resources/js/app.css": {
-    "file": "assets/app.00c358dd.css",
-    "src": "resources/js/app.css"
-  },
   "resources/js/Pages/Champion/Partials/HealthPointBar.css": {
     "file": "assets/HealthPointBar.0770d934.css",
     "src": "resources/js/Pages/Champion/Partials/HealthPointBar.css"
+  },
+  "resources/js/app.css": {
+    "file": "assets/app.00c358dd.css",
+    "src": "resources/js/app.css"
   }
 }
