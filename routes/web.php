@@ -29,3 +29,4 @@ Route::get('/monthly-roi', MonthlyRoiController::class);
 Route::get('/profits/{profitId}', ShowProfitController::class)->name('profits.show');
 Route::get('/incomes', IncomesController::class);
 Route::get('/champions/{id}', ChampionController::class)->name('champions.show');
+Route::get('/champion-dashboard', [ChampionController::class, 'dashboard'])->name('champions.dashboard');
