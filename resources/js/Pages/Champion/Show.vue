@@ -10,36 +10,28 @@
                         <h3 class="text-lg font-semibold mb-4">Basic Information</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <span class="text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-0">Archetype:</span>
-                                <span class="font-medium">{{ champion.archetype }}</span>
-                            </div>
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <span class="text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-0">Age:</span>
-                                <span class="font-medium">{{ champion.age }}</span>
+                                <span class="text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-0">Profile:</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-medium">{{ champion.archetype }}</span>
+                                    <button @click="showProfileDetails = true" class="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                 <span class="text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-0">Current Capital:</span>
                                 <span class="font-medium">${{ champion.current_capital }}</span>
                             </div>
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <span class="text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-0">APY:</span>
-                                <span class="font-medium">{{ champion.apy }}%</span>
-                            </div>
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <span class="text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-0">Grind:</span>
-                                <span class="font-medium">{{ champion.grind }}</span>
-                            </div>
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <span class="text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-0">Profit:</span>
-                                <span class="font-medium">${{ champion.profit }}</span>
-                            </div>
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <span class="text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-0">Income:</span>
-                                <span class="font-medium">${{ champion.income }}</span>
-                            </div>
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <span class="text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-0">Fee:</span>
-                                <span class="font-medium">${{ champion.fee }}</span>
+                                <span class="text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-0">Net Earnings:</span>
+                                <button @click="showDetails = true" class="font-medium hover:underline" :class="{
+                                    'text-green-600 dark:text-green-400': netEarnings > 0,
+                                    'text-red-600 dark:text-red-400': netEarnings < 0
+                                }">
+                                    {{ netEarnings > 0 ? '+' : '' }}${{ netEarnings.toFixed(2) }}
+                                </button>
                             </div>
                             <div v-if="'lootcycle' === champion.archetype" class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                 <span class="text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-0">Entry:</span>
@@ -54,13 +46,16 @@
                     <div class="p-4 text-gray-900 dark:text-gray-100">
                         <h3 class="text-lg font-semibold mb-2">Recent Orders</h3>
                         <div v-if="orders && orders.length > 0" class="space-y-2">
-                            <div v-for="order in orders.slice(0, 5)" :key="order.id" class="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                            <div v-for="(order, index) in orders.slice(0, 5)" :key="order.id" class="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 px-4 rounded-lg" :class="{
+                                'bg-gray-50 dark:bg-gray-800': index % 2 === 0,
+                                'bg-white dark:bg-gray-700': index % 2 === 1
+                            }">
                                 <div class="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-3">
                                     <div class="flex items-center space-x-3">
                                         <span class="text-sm text-gray-500 dark:text-gray-400">#{{ order.id }}</span>
-                                        <span class="font-medium" :class="{
-                                            'text-red-600 dark:text-red-400': order.type === 'Close Long' || order.type === 'Open Short',
-                                            'text-green-600 dark:text-green-400': order.type === 'Open Long' || order.type === 'Close Short'
+                                        <span class="text-xs px-2 py-0.5 rounded font-medium inline-block" :class="{
+                                            'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': order.type === 'Close Long' || order.type === 'Open Short',
+                                            'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': order.type === 'Open Long' || order.type === 'Close Short'
                                         }">{{ order.type }}</span>
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" :class="{
                                             'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': order.source === 'Human',
@@ -80,18 +75,94 @@
                                 <div class="flex items-center space-x-3 mt-2 sm:mt-0">
                                     <span class="font-medium">{{ order.quantity }}</span>
                                     <span class="font-medium">@ ${{ order.avg_price }}</span>
-                                    <span class="text-sm px-2 py-0.5 rounded font-medium" :class="{
+                                    <span v-if="parseFloat(order.realized_pnl) !== 0" class="text-sm px-2 py-0.5 rounded font-medium inline-block w-20 text-right" :class="{
                                         'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': parseFloat(order.realized_pnl) < 0,
-                                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': parseFloat(order.realized_pnl) > 0,
-                                        'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200': parseFloat(order.realized_pnl) === 0
+                                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': parseFloat(order.realized_pnl) > 0
                                     }">
                                         {{ parseFloat(order.realized_pnl) > 0 ? '+' : '' }}${{ order.realized_pnl }}
                                     </span>
+                                    <span v-else class="text-sm px-2 py-0.5 rounded font-medium inline-block w-20 text-right">&nbsp;</span>
                                 </div>
                             </div>
                         </div>
                         <div v-else class="text-center text-gray-500 dark:text-gray-400 py-2">
                             No recent orders found
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Details Modal -->
+        <div v-if="showProfileDetails" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Profile Details</h3>
+                    <button @click="showProfileDetails = false" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-300">Archetype:</span>
+                        <span class="font-medium text-gray-900 dark:text-white">{{ champion.archetype }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-300">Age:</span>
+                        <span class="font-medium text-gray-900 dark:text-white">{{ champion.age }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-300">Grind:</span>
+                        <span class="font-medium text-gray-900 dark:text-white">{{ champion.grind }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earnings Details Modal -->
+        <div v-if="showDetails" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Earnings Breakdown</h3>
+                    <button @click="showDetails = false" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-300">APY:</span>
+                        <span class="font-medium text-gray-900 dark:text-white">{{ champion.apy }}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-300">Profit:</span>
+                        <span class="font-medium text-gray-900 dark:text-white" :class="{
+                            'text-green-600 dark:text-green-400': parseFloat(champion.profit) > 0,
+                            'text-red-600 dark:text-red-400': parseFloat(champion.profit) < 0
+                        }">
+                            {{ parseFloat(champion.profit) > 0 ? '+' : '' }}${{ champion.profit }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-300">Income:</span>
+                        <span class="font-medium text-green-600 dark:text-green-400">+${{ champion.income }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-300">Fee:</span>
+                        <span class="font-medium text-red-600 dark:text-red-400">-${{ champion.fee }}</span>
+                    </div>
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <div class="flex justify-between">
+                            <span class="font-semibold text-gray-900 dark:text-white">Total:</span>
+                            <span class="font-semibold" :class="{
+                                'text-green-600 dark:text-green-400': netEarnings > 0,
+                                'text-red-600 dark:text-red-400': netEarnings < 0
+                            }">
+                                {{ netEarnings > 0 ? '+' : '' }}${{ netEarnings.toFixed(2) }}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -110,6 +181,20 @@ export default {
         orders: {
             type: Array,
             default: () => [],
+        },
+    },
+    data() {
+        return {
+            showDetails: false,
+            showProfileDetails: false,
+        };
+    },
+    computed: {
+        netEarnings() {
+            const profit = parseFloat(this.champion.profit) || 0;
+            const income = parseFloat(this.champion.income) || 0;
+            const fee = parseFloat(this.champion.fee) || 0;
+            return profit + income - fee;
         },
     },
 };

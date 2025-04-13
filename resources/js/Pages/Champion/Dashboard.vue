@@ -4,7 +4,8 @@
             <div class="px-4 py-6 sm:px-0">
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Champion Dashboard</h1>
                 
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+                <!-- Desktop Table View -->
+                <div class="hidden md:block bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
@@ -50,6 +51,43 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="md:hidden space-y-4">
+                    <div v-for="champion in champions" :key="champion.id" class="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ champion.name }}</h3>
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" 
+                                  :class="champion.archetype === 'farmer' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'">
+                                {{ champion.archetype }}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p class="text-gray-500 dark:text-gray-400">Capital</p>
+                                <p class="text-gray-900 dark:text-gray-200">${{ champion.current_capital }}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 dark:text-gray-400">Profit</p>
+                                <p :class="champion.profit < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">${{ champion.profit }}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 dark:text-gray-400">APY</p>
+                                <p class="text-gray-900 dark:text-gray-200">{{ champion.apy }}%</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 dark:text-gray-400">Age</p>
+                                <p class="text-gray-900 dark:text-gray-200">{{ champion.age }}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <Link :href="route('champions.show', champion.id)" 
+                                  class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium">
+                                View Details
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>

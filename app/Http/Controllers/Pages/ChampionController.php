@@ -52,13 +52,25 @@ class ChampionController
             ->limit(5)
             ->get()
             ->map(function ($order) {
+                $type = match (true) {
+                    $order->side === 'BUY' && $order->position_side === 'LONG' => 'Open Long',
+                    $order->side === 'SELL' && $order->position_side === 'LONG' => 'Close Long',
+                    $order->side === 'SELL' && $order->position_side === 'SHORT' => 'Open Short',
+                    default => 'Close Short'
+                };
+
+                $source = str_starts_with($order->client_order_id, 'ios') ? 'Human' : 'Bot';
+                $realizedPnl = $order->trades->sum('realized_pnl');
+
                 return (object)[
                     'id' => $order->order_id,
-                    'type' => $order->side,
+                    'type' => $type,
+                    'source' => $source,
                     'quantity' => number_format($order->executed_qty, 0),
                     'avg_price' => number_format($order->avg_price, 5),
                     'status' => array_search($order->status, Order::STATUS),
-                    'update_time' => now()->setTimestamp((int)($order->update_time / 1000))->diffForHumans()
+                    'update_time' => now()->setTimestamp((int)($order->update_time / 1000))->diffForHumans(),
+                    'realized_pnl' => $realizedPnl !== 0 ? number_format($realizedPnl, 2) : null
                 ];
             });
 
