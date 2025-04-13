@@ -43,7 +43,8 @@ class FuturesImport extends Command
             try {
                 TradingManager::useChampion($champion);
                 $result = TradingManager::importRecentOrders();
-                $this->info(sprintf('Successfully imported orders for %s', $champion->name));
+                TradingManager::importRecentTrades();
+                $this->info(sprintf('Successfully imported orders and trades for %s', $champion->name));
             } catch (Exception $e) {
                 $this->error(sprintf('Error processing champion %s: %s', $champion->name, $e->getMessage()));
             }

@@ -47,16 +47,36 @@ class FuturesClient extends API
      */
     public function userTrades($startTime = null): array
     {
-        return $this->httpRequest(
-            'fapi/v1/userTrades',
-            'GET',
-            [
-                'fapi' => true,
-                'symbol' => $this->symbol,
-                'startTime' => $startTime
-            ],
-            true
-        );
+        info('Making userTrades API call:', [
+            'symbol' => $this->symbol,
+            'startTime' => $startTime
+        ]);
+        
+        try {
+            $result = $this->httpRequest(
+                'fapi/v1/userTrades',
+                'GET',
+                [
+                    'fapi' => true,
+                    'symbol' => $this->symbol,
+                    'startTime' => $startTime
+                ],
+                true
+            );
+            
+            info('userTrades API response:', [
+                'count' => count($result),
+                'sample' => !empty($result) ? $result[0] : null
+            ]);
+            
+            return $result;
+        } catch (Exception $e) {
+            info('userTrades API error:', [
+                'message' => $e->getMessage(),
+                'code' => $e->getCode()
+            ]);
+            throw $e;
+        }
     }
 
     /**
