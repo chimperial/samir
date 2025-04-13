@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pages;
 
 use App\Trading\Champion;
+use App\Trading\Order;
 use Illuminate\Http\Request;
 use Inertia\Response;
 use Laravel\Jetstream\Jetstream;
@@ -45,6 +46,22 @@ class ChampionController
     {
         $champion = Champion::query()->findOrFail($id);
 
+        $orders = $champion->orders()
+            ->where('status', Order::STATUS_FILLED)
+            ->orderBy('update_time', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($order) {
+                return (object)[
+                    'id' => $order->order_id,
+                    'type' => $order->side,
+                    'quantity' => number_format($order->executed_qty, 0),
+                    'avg_price' => number_format($order->avg_price, 5),
+                    'status' => array_search($order->status, Order::STATUS),
+                    'update_time' => now()->setTimestamp((int)($order->update_time / 1000))->diffForHumans()
+                ];
+            });
+
         return Jetstream::inertia()->render($request, 'Champion/Show', [
             'background' => $champion->avatar_url,
             'champion' => (object)[
@@ -62,7 +79,8 @@ class ChampionController
                 'current_capital' => number_format($champion->current_capital, 2),
                 'apy' => number_format($champion->roi / $champion->created_at->diffInHours(now()) * 876000, 2),
                 'entry' => number_format($champion->entry, 4)
-            ]
+            ],
+            'orders' => $orders
         ]);
     }
 }
