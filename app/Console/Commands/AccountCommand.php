@@ -16,18 +16,18 @@ class AccountCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'account';
+    protected $signature = 'account {--sync : Sync all active accounts} {--farmers : Sync only active farmers} {--lootcycles : Sync only active lootcycles}';
 
     protected ChampionManager $championManager;
 
-    protected SpotTradingManager$spotTradingManager;
+    protected SpotTradingManager $spotTradingManager;
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Interacts With Accounts';
+    protected $description = 'Manage and sync trading accounts. This command handles synchronization of active farmers and lootcycles, including order syncing and trade collection.';
 
     public function __construct(ChampionManager $championManager, SpotTradingManager $spotTradingManager)
     {
@@ -45,8 +45,22 @@ class AccountCommand extends Command
      */
     public function handle(): void
     {
-        $this->syncActiveFarmers();
-        $this->syncActiveLootcycles();
+        if ($this->option('sync') || (!$this->option('farmers') && !$this->option('lootcycles'))) {
+            $this->syncActiveFarmers();
+            $this->syncActiveLootcycles();
+            $this->info('Successfully synced all active accounts');
+            return;
+        }
+
+        if ($this->option('farmers')) {
+            $this->syncActiveFarmers();
+            $this->info('Successfully synced active farmers');
+        }
+
+        if ($this->option('lootcycles')) {
+            $this->syncActiveLootcycles();
+            $this->info('Successfully synced active lootcycles');
+        }
     }
 
     public function syncActiveLootcycles()
