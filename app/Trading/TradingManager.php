@@ -82,15 +82,20 @@ class TradingManager
     /**
      * @throws Exception
      */
-    public static function importRecentTrades(): void
+    public static function importRecentTrades(): array
     {
-        tap(Trade::query()
-            ->orderByDesc('time')
-            ->first(),
-            function ($latestTrade) {
-                self::collectTrades($latestTrade->time);
-            }
-        );
+        info('Starting to import recent trades...');
+        
+        try {
+            info('Fetching all trades for symbol: ' . self::$champion->symbol);
+            $trades = self::collectTrades(null);
+            
+            info('Successfully imported recent trades');
+            return $trades;
+        } catch (Exception $e) {
+            info('Error importing recent trades: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**
@@ -301,41 +306,75 @@ class TradingManager
     /**
      * @throws Exception
      */
-    private static function collectTrades(string $time): void
+    private static function collectTrades(?string $time): array
     {
-        $binanceTrades = self::binance()->collectTrades(
-            $time
-        );
-
-        foreach ($binanceTrades as $binanceTrade) {
-            self::upsertTrade($binanceTrade);
+        info(sprintf('Collecting trades since time: %s for symbol: %s', $time ?? 'beginning', self::$champion->symbol));
+        
+        try {
+            $binanceTrades = self::binance()->collectTrades($time);
+            info('Raw API response:', ['trades' => $binanceTrades]);
+            
+            info(sprintf('Retrieved %d trades from Binance', count($binanceTrades)));
+            
+            if (count($binanceTrades) > 0) {
+                info('Sample trade data:', [
+                    'first_trade' => $binanceTrades[0]
+                ]);
+            }
+            
+            foreach ($binanceTrades as $binanceTrade) {
+                info('Processing trade:', [
+                    'id' => $binanceTrade['id'],
+                    'symbol' => $binanceTrade['symbol'],
+                    'side' => $binanceTrade['side'],
+                    'price' => $binanceTrade['price'],
+                    'time' => $binanceTrade['time']
+                ]);
+                self::upsertTrade($binanceTrade);
+            }
+            
+            info('Successfully processed all trades');
+            return $binanceTrades;
+        } catch (Exception $e) {
+            info('Error collecting trades: ' . $e->getMessage());
+            throw $e;
         }
     }
 
     private static function upsertTrade(array $data): void
     {
-        Trade::query()->upsert([
-            [
-                'id' => $data['id'],
-                'symbol' => $data['symbol'],
-                'order_id' => $data['orderId'],
-                'side' => $data['side'],
-                'price' => $data['price'],
-                'qty' => $data['qty'],
-                'realized_pnl' => $data['realizedPnl'],
-                'margin_asset' => $data['marginAsset'],
-                'quote_qty' => $data['quoteQty'],
-                'commission' => $data['commission'],
-                'commission_asset' => $data['commissionAsset'],
-                'time' => $data['time'],
-                'position_side' => $data['positionSide'],
-                'maker' => $data['maker'],
-                'buyer' => $data['buyer'],
-            ]
-        ],
+        info('Attempting to upsert trade:', [
+            'id' => $data['id'],
+            'symbol' => $data['symbol'],
+            'order_id' => $data['orderId'],
+            'time' => $data['time']
+        ]);
+
+        $tradeData = [
+            'id' => $data['id'],
+            'symbol' => $data['symbol'],
+            'order_id' => $data['orderId'],
+            'side' => $data['side'],
+            'price' => $data['price'],
+            'qty' => $data['qty'],
+            'realized_pnl' => $data['realizedPnl'] ?? 0,
+            'margin_asset' => $data['marginAsset'] ?? 'USDT',
+            'quote_qty' => $data['quoteQty'],
+            'commission' => $data['commission'],
+            'commission_asset' => $data['commissionAsset'],
+            'time' => $data['time'],
+            'position_side' => $data['positionSide'],
+            'maker' => $data['maker'],
+            'buyer' => $data['buyer'],
+        ];
+
+        $result = Trade::query()->upsert(
+            [$tradeData],
             ['id'],
             ['time']
         );
+
+        info('Trade upsert result:', ['result' => $result]);
     }
 
     public static function status()
