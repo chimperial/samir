@@ -166,7 +166,7 @@ class TradingManager
     {
         $binanceOrder = self::binance()->openLong(
             self::minSize(),
-            self::currentPrice() - self::priceGap(),
+            round(self::currentPrice() - self::priceGap(), self::getPricePrecision()),
         );
 
         self::upsertOrder($binanceOrder);
@@ -179,7 +179,7 @@ class TradingManager
     {
         $binanceOrder = self::binance()->openShort(
             self::minSize(),
-            self::currentPrice() + self::priceGap(),
+            round(self::currentPrice() + self::priceGap(), self::getPricePrecision()),
         );
 
         self::upsertOrder($binanceOrder);
@@ -204,6 +204,22 @@ class TradingManager
         }
     }
 
+    private static function getPricePrecision(): int
+    {
+        switch (self::$champion->symbol) {
+            case 'BTCUSDT':
+                return 1;
+            case 'ETHUSDT':
+                return 2;
+            case 'BNBUSDT':
+                return 2;
+            case 'DOGEUSDT':
+                return 5;
+            default:
+                return 2;
+        }
+    }
+
     /**
      * @throws Exception
      */
@@ -217,7 +233,7 @@ class TradingManager
      */
     public static function currentPrice(): float
     {
-        return round(self::binance()->getMarkPrice(), 2);
+        return round(self::binance()->getMarkPrice(), self::getPricePrecision());
     }
 
     /**
