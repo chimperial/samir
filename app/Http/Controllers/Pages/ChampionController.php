@@ -22,7 +22,7 @@ class ChampionController
                     'remain_capital' => number_format($champion->current_capital - $champion->onduty, 2),
                     'capital' => $champion->capital,
                     'roi' => number_format($champion->roi * 100, 2),
-                    'profit' => number_format($champion->profit, 2),
+                    'profit' => number_format($champion->profit + $champion->income - $champion->fee, 2),
                     'name' => $champion->name,
                     'archetype' => $champion->archetype,
                     'onduty' => number_format($champion->onduty, 2),

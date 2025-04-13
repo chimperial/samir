@@ -22,14 +22,23 @@ class ActivityController extends Controller
             $lines = explode("\n", $logContent);
             $matchingLines = [];
             
+            // Get the last 1000 lines to process (adjust this number based on your needs)
+            $lines = array_slice($lines, -1000);
+            
             foreach ($lines as $line) {
                 if (strpos($line, 'production.INFO') !== false) {
                     $matchingLines[] = $line;
                 }
             }
             
-            // Get the current page's lines (newest first)
-            $matchingLines = array_reverse($matchingLines);
+            // Sort the lines by timestamp in descending order (newest first)
+            usort($matchingLines, function($a, $b) {
+                preg_match('/\[(.*?)\]/', $a, $matchesA);
+                preg_match('/\[(.*?)\]/', $b, $matchesB);
+                $timestampA = Carbon::createFromFormat('Y-m-d H:i:s', $matchesA[1]);
+                $timestampB = Carbon::createFromFormat('Y-m-d H:i:s', $matchesB[1]);
+                return $timestampB->timestamp - $timestampA->timestamp; // Changed to descending order
+            });
             
             // Calculate total pages
             $totalLines = count($matchingLines);
@@ -41,13 +50,6 @@ class ActivityController extends Controller
             // Get the current page's lines
             $startIndex = ($page - 1) * $perPage;
             $currentPageLines = array_slice($matchingLines, $startIndex, $perPage);
-            
-            // Sort current page lines in ascending order
-            usort($currentPageLines, function($a, $b) {
-                preg_match('/\[(.*?)\]/', $a, $matchesA);
-                preg_match('/\[(.*?)\]/', $b, $matchesB);
-                return strtotime($matchesA[1]) - strtotime($matchesB[1]);
-            });
             
             foreach ($currentPageLines as $line) {
                 // Extract timestamp and message
