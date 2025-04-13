@@ -135,14 +135,20 @@ class FuturesClient extends API
      */
     public function allOrders(string $symbol = null, ?string $updateTime = null): array
     {
+        $params = [
+            'fapi' => true,
+            'symbol' => $symbol ?: $this->symbol,
+            'limit' => 1000
+        ];
+
+        if ($updateTime) {
+            $params['startTime'] = (int)$updateTime;
+        }
+
         return $this->httpRequest(
             'fapi/v1/allOrders',
             'GET',
-            [
-                'fapi' => true,
-                'symbol' => $symbol ?: $this->symbol,
-                'startTime' => $updateTime - 1000
-            ],
+            $params,
             true
         );
     }
