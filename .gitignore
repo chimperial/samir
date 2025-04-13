@@ -21,3 +21,4 @@ yarn-error.log
 /.vscode
 .DS_Store
 public/ca.pem
+public/build/
