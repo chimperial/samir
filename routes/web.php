@@ -8,6 +8,7 @@ use App\Http\Controllers\Pages\MonthlyRoiController;
 use App\Http\Controllers\Pages\ShowProfitController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Pages\IncomesController;
+use App\Http\Controllers\Pages\ActivityController;
 
 
 /*
@@ -30,3 +31,4 @@ Route::get('/profits/{profitId}', ShowProfitController::class)->name('profits.sh
 Route::get('/incomes', IncomesController::class);
 Route::get('/champions/{id}', ChampionController::class)->name('champions.show');
 Route::get('/champion-dashboard', [ChampionController::class, 'dashboard'])->name('champions.dashboard');
+Route::get('/activities', [ActivityController::class, 'index'])->name('activities');
