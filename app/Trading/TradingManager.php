@@ -161,7 +161,7 @@ class TradingManager
      */
     public static function positions()
     {
-        dd(self::binance()->positions());
+        return self::binance()->positions();
     }
 
     /**
@@ -495,27 +495,20 @@ class TradingManager
             return false;
         }
 
-        // Get the latest short order
-        $lastOrder = Order::query()
-            ->where('status', '=', Order::STATUS_FILLED)
-            ->where('position_side', '=', Order::POSITION_SIDE_SHORT)
-            ->where('side', '=', Order::SIDE_SELL)
-            ->where('symbol', '=', self::$champion->symbol)
-            ->where('champion_id', '=', self::$champion->id)
-            ->orderByDesc('update_time')
-            ->first();
-
-        if (!$lastOrder) {
+        // Get the short position
+        $shortPosition = self::binance()->positions()->get(1);
+        
+        if (!$shortPosition || $shortPosition['positionAmt'] == 0) {
             return true;
         }
 
-        // Check if price has increased 1% from last order
+        // Check if price has increased 1% from short position entry price
         $currentPrice = self::currentPrice();
-        $lastOrderPrice = (float)$lastOrder->price;
-        $priceIncreasePercentage = (($currentPrice - $lastOrderPrice) / $lastOrderPrice) * 100;
+        $entryPrice = (float)$shortPosition['entryPrice'];
+        $priceIncreasePercentage = (($currentPrice - $entryPrice) / $entryPrice) * 100;
 
         info('Price check for short position:', [
-            'last_order_price' => $lastOrderPrice,
+            'entry_price' => $entryPrice,
             'current_price' => $currentPrice,
             'price_increase_percentage' => $priceIncreasePercentage,
             'should_open' => $priceIncreasePercentage >= 1
@@ -535,28 +528,21 @@ class TradingManager
             return false;
         }
 
-        // Get the latest long order
-        $lastOrder = Order::query()
-            ->where('status', '=', Order::STATUS_FILLED)
-            ->where('position_side', '=', Order::POSITION_SIDE_LONG)
-            ->where('side', '=', Order::SIDE_BUY)
-            ->where('symbol', '=', self::$champion->symbol)
-            ->where('champion_id', '=', self::$champion->id)
-            ->orderByDesc('update_time')
-            ->first();
-
-        if (!$lastOrder) {
-            info('No previous long order found, can open new position');
+        // Get the long position
+        $longPosition = self::binance()->positions()->get(0);
+        
+        if (!$longPosition || $longPosition['positionAmt'] == 0) {
+            info('No previous long position found, can open new position');
             return true;
         }
 
-        // Check if price has dropped 1% from last order
+        // Check if price has dropped 1% from long position entry price
         $currentPrice = self::currentPrice();
-        $lastOrderPrice = (float)$lastOrder->price;
-        $priceDropPercentage = (($lastOrderPrice - $currentPrice) / $lastOrderPrice) * 100;
+        $entryPrice = (float)$longPosition['entryPrice'];
+        $priceDropPercentage = (($entryPrice - $currentPrice) / $entryPrice) * 100;
 
         info('Price check for long position:', [
-            'last_order_price' => $lastOrderPrice,
+            'entry_price' => $entryPrice,
             'current_price' => $currentPrice,
             'price_drop_percentage' => $priceDropPercentage,
             'should_open' => $priceDropPercentage >= 1
