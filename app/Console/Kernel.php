@@ -15,7 +15,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('binance:balances')->hourly();
+        //$schedule->command('binance:balances')->hourly();
         $schedule->command('futures:profits')->hourly();
         $schedule->command('futures:import')->everyTenMinutes();
         $schedule->command('account')->hourly();

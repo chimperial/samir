@@ -160,7 +160,12 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-sm text-gray-600 dark:text-gray-300">Income:</span>
-                        <span class="text-sm font-medium text-green-600 dark:text-green-400">+${{ champion.income }}</span>
+                        <span class="text-sm font-medium" :class="{
+                            'text-green-600 dark:text-green-400': parseFloat(champion.income) > 0,
+                            'text-red-600 dark:text-red-400': parseFloat(champion.income) < 0
+                        }">
+                            {{ parseFloat(champion.income) > 0 ? '+' : '-' }}${{ Math.abs(parseFloat(champion.income)) }}
+                        </span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-sm text-gray-600 dark:text-gray-300">Fee:</span>

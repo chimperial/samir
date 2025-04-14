@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Trading\ChampionManager;
 use App\Trading\TradingManager;
 use Exception;
 use Illuminate\Console\Command;
@@ -25,12 +26,34 @@ class FuturesPositions extends Command
     /**
      * Execute the console command.
      *
+     * @param ChampionManager $championManager
      * @return void
      * @throws Exception
      */
-    public function handle(): void
+    public function handle(ChampionManager $championManager): void
     {
-        //TradingManager::positions();
-        TradingManager::test();
+        $this->info('Starting futures positions process...');
+        
+        $champions = $championManager->getActiveFarmers();
+        $this->info(sprintf('Found %d active farmers', $champions->count()));
+
+        $champions->each(function ($champion) {
+            $this->info(sprintf('Processing champion: %s', $champion->name));
+            
+            try {
+                TradingManager::useChampion($champion);
+                $positions = TradingManager::positions();
+                
+                if (isset($positions['short'])) {
+                    $this->info(sprintf('Champion %s has a short position', $champion->name));
+                } else {
+                    $this->info(sprintf('Champion %s has no short position', $champion->name));
+                }
+                
+                $this->info(sprintf('Successfully processed positions for %s', $champion->name));
+            } catch (Exception $e) {
+                $this->error(sprintf('Error processing champion %s: %s', $champion->name, $e->getMessage()));
+            }
+        });
     }
 }
