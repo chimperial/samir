@@ -139,16 +139,16 @@ class TradingManager
                     info(sprintf('Retrieved %d orders from Binance', count($orders)));
 
                     foreach ($orders as $order) {
-                        info(sprintf('Processing order: ID %s, Status: %s, Side: %s, Position: %s', 
-                            $order['orderId'],
-                            $order['status'],
-                            $order['side'],
-                            $order['positionSide']
-                        ));
+                        //                        info(sprintf('Processing order: ID %s, Status: %s, Side: %s, Position: %s', 
+                        //                            $order['orderId'],
+                        //                            $order['status'],
+                        //                            $order['side'],
+                        //                            $order['positionSide']
+                        //                        ));
                         
                         $order['cumQty'] = $order['executedQty'];
                         self::upsertOrder($order);
-                        info(sprintf('Successfully upserted order: ID %s', $order['orderId']));
+                        //info(sprintf('Successfully upserted order: ID %s', $order['orderId']));
                     }
                 } else {
                     info('No latest order found with status NEW');
@@ -258,7 +258,7 @@ class TradingManager
 
     private static function upsertOrder(array $data): void
     {
-        $order = Order::query()->upsert([
+        Order::query()->upsert([
             [
                 'order_id' => $data['orderId'],
                 'symbol' => $data['symbol'],
@@ -291,7 +291,7 @@ class TradingManager
             ['status', 'avg_price', 'cum_qty', 'cum_quote', 'executed_qty', 'update_time', 'champion_id']
         );
 
-        info('Upsert result:', ['result' => $order]);
+        //info('Upsert result:', ['result' => $order]);
     }
 
     public static function test(): void
@@ -304,28 +304,28 @@ class TradingManager
      */
     private static function collectTrades(?string $time): array
     {
-        info(sprintf('Collecting trades since time: %s for symbol: %s', $time ?? 'beginning', self::$champion->symbol));
+        //        info(sprintf('Collecting trades since time: %s for symbol: %s', $time ?? 'beginning', self::$champion->symbol));
         
         try {
             $binanceTrades = self::binance()->collectTrades($time);
-            info('Raw API response:', ['trades' => $binanceTrades]);
+            //info('Raw API response:', ['trades' => $binanceTrades]);
             
-            info(sprintf('Retrieved %d trades from Binance', count($binanceTrades)));
+            //info(sprintf('Retrieved %d trades from Binance', count($binanceTrades)));
             
-            if (count($binanceTrades) > 0) {
-                info('Sample trade data:', [
-                    'first_trade' => $binanceTrades[0]
-                ]);
-            }
+            // if (count($binanceTrades) > 0) {
+            //     info('Sample trade data:', [
+            //         'first_trade' => $binanceTrades[0]
+            //     ]);
+            // }
             
             foreach ($binanceTrades as $binanceTrade) {
-                info('Processing trade:', [
-                    'id' => $binanceTrade['id'],
-                    'symbol' => $binanceTrade['symbol'],
-                    'side' => $binanceTrade['side'],
-                    'price' => $binanceTrade['price'],
-                    'time' => $binanceTrade['time']
-                ]);
+                //                info('Processing trade:', [
+                //                    'id' => $binanceTrade['id'],
+                //                    'symbol' => $binanceTrade['symbol'],
+                //                    'side' => $binanceTrade['side'],
+                //                    'price' => $binanceTrade['price'],
+                //                    'time' => $binanceTrade['time']
+                //                ]);
                 self::upsertTrade($binanceTrade);
             }
             
@@ -339,12 +339,12 @@ class TradingManager
 
     private static function upsertTrade(array $data): void
     {
-        info('Attempting to upsert trade:', [
-            'id' => $data['id'],
-            'symbol' => $data['symbol'],
-            'order_id' => $data['orderId'],
-            'time' => $data['time']
-        ]);
+        // info('Attempting to upsert trade:', [
+        //     'id' => $data['id'],
+        //     'symbol' => $data['symbol'],
+        //     'order_id' => $data['orderId'],
+        //     'time' => $data['time']
+        // ]);
 
         $tradeData = [
             'id' => $data['id'],
@@ -364,13 +364,13 @@ class TradingManager
             'buyer' => $data['buyer'],
         ];
 
-        $result = Trade::query()->upsert(
+        Trade::query()->upsert(
             [$tradeData],
             ['id'],
             ['time']
         );
 
-        info('Trade upsert result:', ['result' => $result]);
+        //info('Trade upsert result:', ['result' => $result]);
     }
 
     public static function status()

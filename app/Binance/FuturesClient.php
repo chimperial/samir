@@ -47,10 +47,10 @@ class FuturesClient extends API
      */
     public function userTrades($startTime = null): array
     {
-        info('Making userTrades API call:', [
-            'symbol' => $this->symbol,
-            'startTime' => $startTime
-        ]);
+        // info('Making userTrades API call:', [
+        //     'symbol' => $this->symbol,
+        //     'startTime' => $startTime
+        // ]);
         
         try {
             return $this->httpRequest(
