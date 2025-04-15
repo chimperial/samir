@@ -53,7 +53,7 @@ class FuturesClient extends API
         ]);
         
         try {
-            $result = $this->httpRequest(
+            return $this->httpRequest(
                 'fapi/v1/userTrades',
                 'GET',
                 [
@@ -63,13 +63,6 @@ class FuturesClient extends API
                 ],
                 true
             );
-            
-            info('userTrades API response:', [
-                'count' => count($result),
-                'sample' => !empty($result) ? $result[0] : null
-            ]);
-            
-            return $result;
         } catch (Exception $e) {
             info('userTrades API error:', [
                 'message' => $e->getMessage(),

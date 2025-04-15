@@ -36,21 +36,24 @@ class TradingManager
      */
     public static function handleUp(): void
     {
-        info('Handle Up');
-
-        info('Use champion ID: ' . self::$champion->id);
+        info('Starting handleUp process for champion ID: ' . self::$champion->id);
+        info('Current market state: UP');
 
         if (self::binance()->hasLongPosition()) {
-            info('Has long position');
+            info('Found existing long position - checking for profit taking opportunity');
             self::maybeTakeLongProfit();
+        } else {
+            info('No active long position found');
         }
 
         if (self::shouldOpenShort()) {
-            info('Should open short');
+            info('Market conditions met for opening short position');
             self::openShort();
+        } else {
+            info('Market conditions not suitable for opening short position');
         }
 
-        info('Handle Up End');
+        info('Completed handleUp process');
     }
 
     /**
@@ -255,13 +258,6 @@ class TradingManager
 
     private static function upsertOrder(array $data): void
     {
-        info('Attempting to upsert order:', [
-            'order_id' => $data['orderId'],
-            'symbol' => $data['symbol'],
-            'status' => $data['status'],
-            'champion_id' => self::$champion->id
-        ]);
-
         $order = Order::query()->upsert([
             [
                 'order_id' => $data['orderId'],
@@ -502,13 +498,26 @@ class TradingManager
             return true;
         }
 
-        // Check if price has increased 1% from short position entry price
+        // Get the latest filled short order
+        $latestOrder = Order::query()
+            ->where('status', '=', Order::STATUS_FILLED)
+            ->where('position_side', '=', Order::POSITION_SIDE_SHORT)
+            ->where('side', '=', Order::SIDE_SELL)
+            ->where('champion_id', '=', self::$champion->id)
+            ->orderByDesc('update_time')
+            ->first();
+
+        if (!$latestOrder) {
+            return true;
+        }
+
+        // Check if price has increased 1% from latest filled order price
         $currentPrice = self::currentPrice();
-        $entryPrice = (float)$shortPosition['entryPrice'];
-        $priceIncreasePercentage = (($currentPrice - $entryPrice) / $entryPrice) * 100;
+        $orderPrice = (float)$latestOrder->avg_price;
+        $priceIncreasePercentage = (($currentPrice - $orderPrice) / $orderPrice) * 100;
 
         info('Price check for short position:', [
-            'entry_price' => $entryPrice,
+            'order_price' => $orderPrice,
             'current_price' => $currentPrice,
             'price_increase_percentage' => $priceIncreasePercentage,
             'should_open' => $priceIncreasePercentage >= 1
@@ -536,13 +545,27 @@ class TradingManager
             return true;
         }
 
-        // Check if price has dropped 1% from long position entry price
+        // Get the latest filled long order
+        $latestOrder = Order::query()
+            ->where('status', '=', Order::STATUS_FILLED)
+            ->where('position_side', '=', Order::POSITION_SIDE_LONG)
+            ->where('side', '=', Order::SIDE_BUY)
+            ->where('champion_id', '=', self::$champion->id)
+            ->orderByDesc('update_time')
+            ->first();
+
+        if (!$latestOrder) {
+            info('No previous long order found, can open new position');
+            return true;
+        }
+
+        // Check if price has dropped 1% from latest filled order price
         $currentPrice = self::currentPrice();
-        $entryPrice = (float)$longPosition['entryPrice'];
-        $priceDropPercentage = (($entryPrice - $currentPrice) / $entryPrice) * 100;
+        $orderPrice = (float)$latestOrder->avg_price;
+        $priceDropPercentage = (($orderPrice - $currentPrice) / $orderPrice) * 100;
 
         info('Price check for long position:', [
-            'entry_price' => $entryPrice,
+            'order_price' => $orderPrice,
             'current_price' => $currentPrice,
             'price_drop_percentage' => $priceDropPercentage,
             'should_open' => $priceDropPercentage >= 1
