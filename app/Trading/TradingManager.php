@@ -139,16 +139,10 @@ class TradingManager
                     info(sprintf('Retrieved %d orders from Binance', count($orders)));
 
                     foreach ($orders as $order) {
-                        //                        info(sprintf('Processing order: ID %s, Status: %s, Side: %s, Position: %s', 
-                        //                            $order['orderId'],
-                        //                            $order['status'],
-                        //                            $order['side'],
-                        //                            $order['positionSide']
-                        //                        ));
                         
                         $order['cumQty'] = $order['executedQty'];
                         self::upsertOrder($order);
-                        //info(sprintf('Successfully upserted order: ID %s', $order['orderId']));
+
                     }
                 } else {
                     info('No latest order found with status NEW');
@@ -397,9 +391,35 @@ class TradingManager
     /**
      * @throws Exception
      */
+    public static function hasLongProfit(): bool
+    {
+        if (!self::binance()->hasLongPosition()) {
+            return false;
+        }
+        
+        $fee = self::$champion->grind * 0.0005; // 0.05% fee based on champion's grind
+        return self::binance()->positions()->get(0)['unRealizedProfit'] - $fee > 0;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public static function hasShortProfit(): bool
+    {
+        if (!self::binance()->hasShortPosition()) {
+            return false;
+        }
+        
+        $fee = self::$champion->grind * 0.0005; // 0.05% fee based on champion's grind
+        return self::binance()->positions()->get(1)['unRealizedProfit'] - $fee > 0;
+    }
+
+    /**
+     * @throws Exception
+     */
     private static function maybeTakeLongProfit(): void
     {
-        if (self::binance()->hasLongProfit()) {
+        if (self::hasLongProfit()) {
             info('long profit');
             self::takeLongProfit();
         }
@@ -410,7 +430,7 @@ class TradingManager
      */
     private static function maybeTakeShortProfit(): void
     {
-        if (self::binance()->hasShortProfit()) {
+        if (self::hasShortProfit()) {
             info('short profit');
             self::takeShortProfit();
         }
