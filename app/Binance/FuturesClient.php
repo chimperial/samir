@@ -190,9 +190,7 @@ class FuturesClient extends API
                 'symbol' => $this->symbol,
                 'side' => 'SELL',
                 'quantity' => $size,
-                'type' => 'LIMIT',
-                'price' => $entry,
-                'timeInForce' => 'GTC',
+                'type' => 'MARKET',
                 'positionSide' => 'LONG'
             ],
             true
@@ -232,9 +230,7 @@ class FuturesClient extends API
                 'symbol' => $this->symbol,
                 'side' => 'BUY',
                 'quantity' => $size,
-                'type' => 'LIMIT',
-                'price' => $entry,
-                'timeInForce' => 'GTC',
+                'type' => 'MARKET',
                 'positionSide' => 'SHORT'
             ],
             true
