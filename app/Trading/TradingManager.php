@@ -284,8 +284,6 @@ class TradingManager
             ['order_id'],
             ['status', 'avg_price', 'cum_qty', 'cum_quote', 'executed_qty', 'update_time', 'champion_id']
         );
-
-        //info('Upsert result:', ['result' => $order]);
     }
 
     public static function test(): void
@@ -298,8 +296,6 @@ class TradingManager
      */
     private static function collectTrades(?string $time): array
     {
-        //        info(sprintf('Collecting trades since time: %s for symbol: %s', $time ?? 'beginning', self::$champion->symbol));
-        
         try {
             $binanceTrades = self::binance()->collectTrades($time);
             
