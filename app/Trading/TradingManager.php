@@ -302,24 +302,8 @@ class TradingManager
         
         try {
             $binanceTrades = self::binance()->collectTrades($time);
-            //info('Raw API response:', ['trades' => $binanceTrades]);
-            
-            //info(sprintf('Retrieved %d trades from Binance', count($binanceTrades)));
-            
-            // if (count($binanceTrades) > 0) {
-            //     info('Sample trade data:', [
-            //         'first_trade' => $binanceTrades[0]
-            //     ]);
-            // }
             
             foreach ($binanceTrades as $binanceTrade) {
-                //                info('Processing trade:', [
-                //                    'id' => $binanceTrade['id'],
-                //                    'symbol' => $binanceTrade['symbol'],
-                //                    'side' => $binanceTrade['side'],
-                //                    'price' => $binanceTrade['price'],
-                //                    'time' => $binanceTrade['time']
-                //                ]);
                 self::upsertTrade($binanceTrade);
             }
             
@@ -333,13 +317,6 @@ class TradingManager
 
     private static function upsertTrade(array $data): void
     {
-        // info('Attempting to upsert trade:', [
-        //     'id' => $data['id'],
-        //     'symbol' => $data['symbol'],
-        //     'order_id' => $data['orderId'],
-        //     'time' => $data['time']
-        // ]);
-
         $tradeData = [
             'id' => $data['id'],
             'symbol' => $data['symbol'],
@@ -363,8 +340,6 @@ class TradingManager
             ['id'],
             ['time']
         );
-
-        //info('Trade upsert result:', ['result' => $result]);
     }
 
     public static function status()
@@ -441,16 +416,12 @@ class TradingManager
      */
     private static function takeLongProfit(): void
     {
-        $order = self::getClosableLongOrder();
+        $binanceOrder = self::binance()->closeLong(
+            self::minSize(),
+            self::currentPrice() + self::priceGap(),
+        );
 
-        if ($order) {
-            $binanceOrder = self::binance()->closeLong(
-                $order->orig_qty,
-                self::currentPrice() + self::priceGap(),
-            );
-
-            self::upsertOrder($binanceOrder);
-        }
+        self::upsertOrder($binanceOrder);
     }
 
     /**
@@ -458,17 +429,12 @@ class TradingManager
      */
     private static function takeShortProfit(): void
     {
+        $binanceOrder = self::binance()->closeShort(
+            self::minSize(),
+            self::currentPrice() - self::priceGap(),
+        );
 
-        $order = self::getClosableShortOrder();
-
-        if ($order) {
-            $binanceOrder = self::binance()->closeShort(
-                $order->orig_qty,
-                self::currentPrice() - self::priceGap(),
-            );
-
-            self::upsertOrder($binanceOrder);
-        }
+        self::upsertOrder($binanceOrder);
     }
 
     /**
