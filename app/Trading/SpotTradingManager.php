@@ -239,4 +239,16 @@ class SpotTradingManager
 
         return true;
     }
+
+    public function handleDown(): void
+    {
+        if ($this->shouldPlaceBuyOrder()) {
+            $this->placeBuyOrder();
+        }
+    }
+
+    private function shouldPlaceBuyOrder(): bool
+    {
+        return $this->champion->onduty <= ($this->champion->capital / 2);
+    }
 }

@@ -25,6 +25,11 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        //
+        Gate::define('viewPulse', function ($user) {
+            return in_array($user->email, [
+                'sondoha@gmail.com',
+                // Add more admin emails here
+            ]);
+        });
     }
 }

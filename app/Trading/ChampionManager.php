@@ -59,6 +59,14 @@ class ChampionManager
             ->get();
     }
 
+    public function getActiveDwarfs(): Collection|array
+    {
+        return Champion::query()
+            ->where('archetype', 'dwarf')
+            ->where('status', 'active')
+            ->get();
+    }
+
     /**
      * @throws Exception
      */
