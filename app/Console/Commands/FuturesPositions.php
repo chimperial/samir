@@ -44,7 +44,14 @@ class FuturesPositions extends Command
                 TradingManager::useChampion($champion);
                 $positions = TradingManager::positions();
                 
-                if (isset($positions['short'])) {
+                $this->info(sprintf('Positions for %s:', $champion->name));
+                $this->info(json_encode($positions, JSON_PRETTY_PRINT));
+                
+                $hasShortPosition = $positions->contains(function ($position) {
+                    return $position['positionSide'] === 'SHORT' && $position['positionAmt'] != 0;
+                });
+                
+                if ($hasShortPosition) {
                     $this->info(sprintf('Champion %s has a short position', $champion->name));
                 } else {
                     $this->info(sprintf('Champion %s has no short position', $champion->name));

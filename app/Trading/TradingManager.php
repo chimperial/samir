@@ -464,6 +464,19 @@ class TradingManager
             return true;
         }
 
+        // Check if short position notional plus grind is within 50% of champion's capital
+        $shortNotional = abs((float)$shortPosition['notional']) + self::$champion->grind;
+        if ($shortNotional > (self::$champion->capital * 0.5)) {
+            info('Short position notional plus grind exceeds 50% of champion capital', [
+                'short_notional' => abs((float)$shortPosition['notional']),
+                'grind' => self::$champion->grind,
+                'total_notional' => $shortNotional,
+                'champion_capital' => self::$champion->capital,
+                'max_allowed' => self::$champion->capital * 0.5
+            ]);
+            return false;
+        }
+
         // Get the latest filled short order
         $latestOrder = Order::query()
             ->where('status', '=', Order::STATUS_FILLED)
@@ -509,6 +522,19 @@ class TradingManager
         if (!$longPosition || $longPosition['positionAmt'] == 0) {
             info('No previous long position found, can open new position');
             return true;
+        }
+
+        // Check if long position notional plus grind is within 50% of champion's capital
+        $longNotional = abs((float)$longPosition['notional']) + self::$champion->grind;
+        if ($longNotional > (self::$champion->capital * 0.5)) {
+            info('Long position notional plus grind exceeds 50% of champion capital', [
+                'long_notional' => abs((float)$longPosition['notional']),
+                'grind' => self::$champion->grind,
+                'total_notional' => $longNotional,
+                'champion_capital' => self::$champion->capital,
+                'max_allowed' => self::$champion->capital * 0.5
+            ]);
+            return false;
         }
 
         // Get the latest filled long order
