@@ -87,16 +87,10 @@ class TradingManager
      */
     public static function importRecentTrades(): array
     {
-        info('Starting to import recent trades...');
-        
         try {
-            info('Fetching all trades for symbol: ' . self::$champion->symbol);
             $trades = self::collectTrades(null);
-            
-            info('Successfully imported recent trades');
             return $trades;
         } catch (Exception $e) {
-            info('Error importing recent trades: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -119,38 +113,28 @@ class TradingManager
      */
     public static function importRecentOrders(): void
     {
-        info('Starting to import recent orders...');
-        
         tap(
             Order::query()
                 ->where('status', '=', Order::STATUS_NEW)
                 ->where('champion_id', '=', self::$champion->id)
-                ->orderBy('update_time')
+                ->orderBy('order_id')
                 ->first(),
 
             function ($latestOrder) {
                 if ($latestOrder) {
-                    info(sprintf('Found latest order: ID %s, Update Time: %s', 
-                        $latestOrder->order_id, 
-                        $latestOrder->update_time
-                    ));
-                    
-                    $orders = self::binance()->orders(self::$champion->symbol, $latestOrder->update_time);
-                    info(sprintf('Retrieved %d orders from Binance', count($orders)));
-
-                    foreach ($orders as $order) {
+                    try {
+                        $orders = self::binance()->orders(self::$champion->symbol, $latestOrder->update_time);
                         
-                        $order['cumQty'] = $order['executedQty'];
-                        self::upsertOrder($order);
-
+                        foreach ($orders as $order) {
+                            $order['cumQty'] = $order['executedQty'];
+                            self::upsertOrder($order);
+                        }
+                    } catch (Exception $e) {
+                        throw $e;
                     }
-                } else {
-                    info('No latest order found with status NEW');
                 }
             }
         );
-        
-        info('Completed importing recent orders');
     }
 
     /**
