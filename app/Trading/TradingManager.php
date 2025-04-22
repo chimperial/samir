@@ -396,8 +396,17 @@ class TradingManager
      */
     private static function takeLongProfit(): void
     {
+        $longPosition = self::binance()->positions()->get(0);
+        $positionNotional = abs((float)$longPosition['notional']);
+        $grind = self::$champion->grind;
+        
+        // If position notional is close to grind (within 1%), use position notional instead
+        $size = abs($positionNotional - $grind) / $grind <= 0.01 
+            ? round($positionNotional / self::currentPrice(), self::getPrecision())
+            : self::minSize();
+
         $binanceOrder = self::binance()->closeLong(
-            self::minSize(),
+            $size,
             self::currentPrice() + self::priceGap(),
         );
 
@@ -409,8 +418,17 @@ class TradingManager
      */
     private static function takeShortProfit(): void
     {
+        $shortPosition = self::binance()->positions()->get(1);
+        $positionNotional = abs((float)$shortPosition['notional']);
+        $grind = self::$champion->grind;
+        
+        // If position notional is close to grind (within 1%), use position notional instead
+        $size = abs($positionNotional - $grind) / $grind <= 0.01 
+            ? round($positionNotional / self::currentPrice(), self::getPrecision())
+            : self::minSize();
+
         $binanceOrder = self::binance()->closeShort(
-            self::minSize(),
+            $size,
             self::currentPrice() - self::priceGap(),
         );
 
