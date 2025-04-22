@@ -400,15 +400,38 @@ class TradingManager
         $positionNotional = abs((float)$longPosition['notional']);
         $grind = self::$champion->grind;
         
+        info('Taking long profit - Position details:', [
+            'position_notional' => $positionNotional,
+            'champion_grind' => $grind,
+            'unrealized_profit' => $longPosition['unRealizedProfit'],
+            'leverage' => $longPosition['leverage'],
+            'entry_price' => $longPosition['entryPrice'],
+            'current_price' => self::currentPrice()
+        ]);
+        
         // If position notional is close to grind (within 1%), use position notional instead
         $size = abs($positionNotional - $grind) / $grind <= 0.01 
             ? round($positionNotional / self::currentPrice(), self::getPrecision())
             : self::minSize();
 
+        info('Calculated trade size:', [
+            'size' => $size,
+            'using_position_notional' => abs($positionNotional - $grind) / $grind <= 0.01,
+            'price_precision' => self::getPrecision(),
+            'current_price' => self::currentPrice()
+        ]);
+
         $binanceOrder = self::binance()->closeLong(
             $size,
             self::currentPrice() + self::priceGap(),
         );
+
+        info('Closing long position - Order details:', [
+            'order_id' => $binanceOrder['orderId'],
+            'size' => $size,
+            'price' => self::currentPrice() + self::priceGap(),
+            'price_gap' => self::priceGap()
+        ]);
 
         self::upsertOrder($binanceOrder);
     }
@@ -422,15 +445,38 @@ class TradingManager
         $positionNotional = abs((float)$shortPosition['notional']);
         $grind = self::$champion->grind;
         
+        info('Taking short profit - Position details:', [
+            'position_notional' => $positionNotional,
+            'champion_grind' => $grind,
+            'unrealized_profit' => $shortPosition['unRealizedProfit'],
+            'leverage' => $shortPosition['leverage'],
+            'entry_price' => $shortPosition['entryPrice'],
+            'current_price' => self::currentPrice()
+        ]);
+        
         // If position notional is close to grind (within 1%), use position notional instead
         $size = abs($positionNotional - $grind) / $grind <= 0.01 
             ? round($positionNotional / self::currentPrice(), self::getPrecision())
             : self::minSize();
 
+        info('Calculated trade size:', [
+            'size' => $size,
+            'using_position_notional' => abs($positionNotional - $grind) / $grind <= 0.01,
+            'price_precision' => self::getPrecision(),
+            'current_price' => self::currentPrice()
+        ]);
+
         $binanceOrder = self::binance()->closeShort(
             $size,
             self::currentPrice() - self::priceGap(),
         );
+
+        info('Closing short position - Order details:', [
+            'order_id' => $binanceOrder['orderId'],
+            'size' => $size,
+            'price' => self::currentPrice() - self::priceGap(),
+            'price_gap' => self::priceGap()
+        ]);
 
         self::upsertOrder($binanceOrder);
     }
