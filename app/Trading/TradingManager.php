@@ -113,6 +113,8 @@ class TradingManager
      */
     public static function importRecentOrders(): void
     {
+        info('Starting importRecentOrders for champion ID: ' . self::$champion->id);
+        
         tap(
             Order::query()
                 ->where('status', '=', Order::STATUS_NEW)
@@ -122,19 +124,38 @@ class TradingManager
 
             function ($latestOrder) {
                 if ($latestOrder) {
+                    info('Found latest order:', [
+                        'order_id' => $latestOrder->order_id,
+                        'update_time' => $latestOrder->update_time,
+                        'symbol' => $latestOrder->symbol
+                    ]);
+                    
                     try {
-                        $orders = self::binance()->orders(self::$champion->symbol, $latestOrder->update_time);
+                        $orders = self::binance()->orders(self::$champion->symbol, (int)($latestOrder->update_time - 1000));
+                
+                        info('Raw Binance response:', $orders);
+                        info('Retrieved ' . count($orders) . ' orders from Binance');
                         
                         foreach ($orders as $order) {
                             $order['cumQty'] = $order['executedQty'];
                             self::upsertOrder($order);
+                            info('Upserted order:', [
+                                'order_id' => $order['orderId'],
+                                'status' => $order['status'],
+                                'executed_qty' => $order['executedQty']
+                            ]);
                         }
                     } catch (Exception $e) {
+                        info('Error importing recent orders: ' . $e->getMessage());
                         throw $e;
                     }
+                } else {
+                    info('No latest order found for champion ID: ' . self::$champion->id);
                 }
             }
         );
+        
+        info('Completed importRecentOrders for champion ID: ' . self::$champion->id);
     }
 
     /**
