@@ -126,13 +126,12 @@
                                         'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': order.source === 'Human',
                                         'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200': order.source === 'Bot'
                                     }">
-                                        <svg v-if="order.source === 'Human'" class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <svg v-if="order.source === 'Human'" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                         </svg>
-                                        <svg v-else class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <svg v-else class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
                                         </svg>
-                                        {{ order.source }}
                                     </span>
                                     <span class="text-xs font-medium"><span class="hidden sm:inline">@ </span>${{ order.avg_price }}</span>
                                     <span class="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">{{ order.update_time }}</span>
