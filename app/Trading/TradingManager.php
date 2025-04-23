@@ -132,7 +132,7 @@ class TradingManager
                     
                     try {
                         $orders = self::binance()->orders(self::$champion->symbol, (int)($latestOrder->update_time - 1000));
-                
+
                         info('Raw Binance response:', $orders);
                         info('Retrieved ' . count($orders) . ' orders from Binance');
                         
@@ -430,14 +430,14 @@ class TradingManager
             'current_price' => self::currentPrice()
         ]);
         
-        // If position notional is close to grind (within 1%), use position notional instead
-        $size = abs($positionNotional - $grind) / $grind <= 0.01 
+        // If position notional is close to grind (within 20%), use position notional instead
+        $size = abs($positionNotional - $grind) / $grind <= 0.20 
             ? round($positionNotional / self::currentPrice(), self::getPrecision())
             : self::minSize();
 
         info('Calculated trade size:', [
             'size' => $size,
-            'using_position_notional' => abs($positionNotional - $grind) / $grind <= 0.01,
+            'using_position_notional' => abs($positionNotional - $grind) / $grind <= 0.20,
             'price_precision' => self::getPrecision(),
             'current_price' => self::currentPrice()
         ]);
@@ -475,14 +475,14 @@ class TradingManager
             'current_price' => self::currentPrice()
         ]);
         
-        // If position notional is close to grind (within 1%), use position notional instead
-        $size = abs($positionNotional - $grind) / $grind <= 0.01 
+        // If position notional is close to grind (within 20%), use position notional instead
+        $size = abs($positionNotional - $grind) / $grind <= 0.20 
             ? round($positionNotional / self::currentPrice(), self::getPrecision())
             : self::minSize();
 
         info('Calculated trade size:', [
             'size' => $size,
-            'using_position_notional' => abs($positionNotional - $grind) / $grind <= 0.01,
+            'using_position_notional' => abs($positionNotional - $grind) / $grind <= 0.20,
             'price_precision' => self::getPrecision(),
             'current_price' => self::currentPrice()
         ]);
