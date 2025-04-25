@@ -112,7 +112,7 @@
                     <div class="p-4 text-gray-900 dark:text-gray-100">
                         <h3 class="text-base font-semibold mb-2">Recent Orders</h3>
                         <div v-if="orders && orders.length > 0" class="space-y-2">
-                            <div v-for="(order, index) in orders.slice(0, 5)" :key="order.id" class="flex items-center justify-between py-2 px-4 rounded-lg" :class="{
+                            <div v-for="(order, index) in orders.slice(0, 10)" :key="order.id" class="flex items-center justify-between py-2 px-4 rounded-lg" :class="{
                                 'bg-gray-50 dark:bg-gray-800': index % 2 === 0,
                                 'bg-white dark:bg-gray-700': index % 2 === 1
                             }">

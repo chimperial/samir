@@ -49,7 +49,7 @@ class ChampionController
         $orders = $champion->orders()
             ->where('status', Order::STATUS_FILLED)
             ->orderBy('update_time', 'desc')
-            ->limit(5)
+            ->limit(10)
             ->get()
             ->map(function ($order) {
                 $type = match (true) {
