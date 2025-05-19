@@ -584,10 +584,10 @@ class TradingManager
             'order_price' => $orderPrice,
             'current_price' => $currentPrice,
             'price_increase_percentage' => $priceIncreasePercentage,
-            'should_open' => $priceIncreasePercentage >= 1
+            'should_open' => $priceIncreasePercentage >= 2
         ]);
 
-        return $priceIncreasePercentage >= 1;
+        return $priceIncreasePercentage >= 2;
     }
 
     /** @noinspection DuplicatedCode */
@@ -645,10 +645,10 @@ class TradingManager
             'order_price' => $orderPrice,
             'current_price' => $currentPrice,
             'price_drop_percentage' => $priceDropPercentage,
-            'should_open' => $priceDropPercentage >= 1
+            'should_open' => $priceDropPercentage >= 2
         ]);
 
-        return $priceDropPercentage >= 1;
+        return $priceDropPercentage >= 2;
     }
 
     private static function last2Hours(): int
