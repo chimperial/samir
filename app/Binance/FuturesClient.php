@@ -257,7 +257,8 @@ class FuturesClient extends API
 
     public function openLongWithSLTP(float $size, float $entry, ?float $sl = null, ?float $tp = null): array
     {
-        // Entry order
+        // Entry order (MARKET)
+        // See: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api#http-request
         $entryOrder = $this->httpRequest(
             'fapi/v1/order',
             'POST',
@@ -266,13 +267,13 @@ class FuturesClient extends API
                 'symbol' => $this->symbol,
                 'side' => 'BUY',
                 'quantity' => $size,
-                'type' => 'MARKET',
-                'positionSide' => 'LONG'
+                'type' => 'MARKET', // MARKET order per Binance API
+                'positionSide' => 'LONG',
             ],
             true
         );
 
-        // Stop Loss
+        // Stop Loss (STOP_MARKET, close all)
         if ($sl) {
             $this->httpRequest(
                 'fapi/v1/order',
@@ -281,16 +282,16 @@ class FuturesClient extends API
                     'fapi' => true,
                     'symbol' => $this->symbol,
                     'side' => 'SELL',
-                    'quantity' => $size,
-                    'type' => 'STOP_MARKET',
+                    'type' => 'STOP_MARKET', // STOP_MARKET order per Binance API
                     'stopPrice' => $sl,
-                    'positionSide' => 'LONG'
+                    'positionSide' => 'LONG',
+                    'closePosition' => true, // Close all position, see Binance API docs
                 ],
                 true
             );
         }
 
-        // Take Profit
+        // Take Profit (TAKE_PROFIT_MARKET, close all)
         if ($tp) {
             $this->httpRequest(
                 'fapi/v1/order',
@@ -299,10 +300,10 @@ class FuturesClient extends API
                     'fapi' => true,
                     'symbol' => $this->symbol,
                     'side' => 'SELL',
-                    'quantity' => $size,
-                    'type' => 'TAKE_PROFIT_MARKET',
+                    'type' => 'TAKE_PROFIT_MARKET', // TAKE_PROFIT_MARKET order per Binance API
                     'stopPrice' => $tp,
-                    'positionSide' => 'LONG'
+                    'positionSide' => 'LONG',
+                    'closePosition' => true, // Close all position, see Binance API docs
                 ],
                 true
             );
