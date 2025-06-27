@@ -254,4 +254,60 @@ class FuturesClient extends API
             true
         );
     }
+
+    public function openLongWithSLTP(float $size, float $entry, ?float $sl = null, ?float $tp = null): array
+    {
+        // Entry order
+        $entryOrder = $this->httpRequest(
+            'fapi/v1/order',
+            'POST',
+            [
+                'fapi' => true,
+                'symbol' => $this->symbol,
+                'side' => 'BUY',
+                'quantity' => $size,
+                'type' => 'MARKET',
+                'positionSide' => 'LONG'
+            ],
+            true
+        );
+
+        // Stop Loss
+        if ($sl) {
+            $this->httpRequest(
+                'fapi/v1/order',
+                'POST',
+                [
+                    'fapi' => true,
+                    'symbol' => $this->symbol,
+                    'side' => 'SELL',
+                    'quantity' => $size,
+                    'type' => 'STOP_MARKET',
+                    'stopPrice' => $sl,
+                    'positionSide' => 'LONG'
+                ],
+                true
+            );
+        }
+
+        // Take Profit
+        if ($tp) {
+            $this->httpRequest(
+                'fapi/v1/order',
+                'POST',
+                [
+                    'fapi' => true,
+                    'symbol' => $this->symbol,
+                    'side' => 'SELL',
+                    'quantity' => $size,
+                    'type' => 'TAKE_PROFIT_MARKET',
+                    'stopPrice' => $tp,
+                    'positionSide' => 'LONG'
+                ],
+                true
+            );
+        }
+
+        return $entryOrder;
+    }
 }

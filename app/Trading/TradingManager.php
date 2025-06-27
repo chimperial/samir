@@ -195,7 +195,7 @@ class TradingManager
     /**
      * @throws Exception
      */
-    private static function getPrecision(): int
+    public static function getPrecision(): int
     {
         switch (self::$champion->symbol) {
             case 'BTCUSDT':
@@ -206,12 +206,14 @@ class TradingManager
                 return 2;
             case 'DOGEUSDT':
                 return 0;
+            case 'TRXUSDT':
+                return 0;
             default:
                 return 2;
         }
     }
 
-    private static function getPricePrecision(): int
+    public static function getPricePrecision(): int
     {
         switch (self::$champion->symbol) {
             case 'BTCUSDT':
@@ -222,6 +224,8 @@ class TradingManager
                 return 2;
             case 'DOGEUSDT':
                 return 5;
+            case 'TRXUSDT':
+                return 5;
             default:
                 return 2;
         }
@@ -230,7 +234,7 @@ class TradingManager
     /**
      * @throws Exception
      */
-    private static function minSize(): float
+    public static function minSize(): float
     {
         return round(self::$champion->grind / self::currentPrice(), self::getPrecision());
     }
@@ -762,5 +766,16 @@ class TradingManager
     private static function priceGap(): float
     {
         return round(0.0004 * self::currentPrice(), 2);
+    }
+
+    public static function openLongWithSLTP(float $size, float $entry, ?float $sl = null, ?float $tp = null): void
+    {
+        $binanceOrder = self::binance()->openLongWithSLTP($size, $entry, $sl, $tp);
+        self::upsertOrder($binanceOrder);
+    }
+
+    public static function hasOpenLongPosition(): bool
+    {
+        return self::binance()->hasLongPosition();
     }
 }

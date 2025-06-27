@@ -120,4 +120,9 @@ class Binance
     {
         return $this->client->income($time);
     }
+
+    public function openLongWithSLTP(float $size, float $entry, ?float $sl = null, ?float $tp = null): array
+    {
+        return $this->client->openLongWithSLTP($size, $entry, $sl, $tp);
+    }
 }
