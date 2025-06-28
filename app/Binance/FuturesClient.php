@@ -285,7 +285,7 @@ class FuturesClient extends API
                     'type' => 'STOP_MARKET', // STOP_MARKET order per Binance API
                     'stopPrice' => $sl,
                     'positionSide' => 'LONG',
-                    'closePosition' => true, // Close all position, see Binance API docs
+                    'closePosition' => 'true', // Use string 'true' per Binance API
                 ],
                 true
             );
@@ -303,7 +303,7 @@ class FuturesClient extends API
                     'type' => 'TAKE_PROFIT_MARKET', // TAKE_PROFIT_MARKET order per Binance API
                     'stopPrice' => $tp,
                     'positionSide' => 'LONG',
-                    'closePosition' => true, // Close all position, see Binance API docs
+                    'closePosition' => 'true', // Use string 'true' per Binance API
                 ],
                 true
             );
