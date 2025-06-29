@@ -72,9 +72,6 @@ class HandleTradingviewHookController extends Controller
                             }
                             $size = $position_notional / $entry;
                             $size = round($size, TradingManager::getPrecision());
-                            if (!TradingManager::hasOpenLongPosition()) {
-                                TradingManager::openLongWithSLTP($size, $entry, $sl, $tp);
-                            }
                         } else {
                             $size = round(TradingManager::minSize(), TradingManager::getPrecision());
                         }
