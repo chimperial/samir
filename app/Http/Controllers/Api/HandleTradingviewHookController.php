@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Trading\Champion;
 use App\Trading\TradingManager;
 use App\Trading\SpotTradingManager;
+use App\Trading\PositionSizeCalculator;
 use App\Http\Controllers\Controller;
 use App\Tradingview\InteractsWithTradingviewAlerts;
 use Exception;
@@ -61,20 +62,10 @@ class HandleTradingviewHookController extends Controller
                         $entry = round((float)$request->payloads['price'], TradingManager::getPricePrecision());
                         $sl = isset($request->payloads['sl']) ? round((float)$request->payloads['sl'], TradingManager::getPricePrecision()) : null;
                         $tp = isset($request->payloads['tp']) ? round((float)$request->payloads['tp'], TradingManager::getPricePrecision()) : null;
-                        $size = null;
-                        if ($sl && $entry != $sl) {
-                            $risk_percent = abs($entry - $sl) / $entry;
-                            $risk_amount = $capital * 75 * 0.001;
-                            $position_notional = $risk_amount / $risk_percent;
-                            $max_notional = $capital * 75;
-                            if ($position_notional > $max_notional) {
-                                $position_notional = $max_notional;
-                            }
-                            $size = $position_notional / $entry;
-                            $size = round($size, TradingManager::getPrecision());
-                        } else {
-                            $size = round(TradingManager::minSize(), TradingManager::getPrecision());
-                        }
+                        
+                        $sizeCalculator = new PositionSizeCalculator();
+                        $size = $sizeCalculator->calculateSize($capital, $entry, $sl, $tp);
+                        
                         if (!TradingManager::hasOpenLongPosition()) {
                             TradingManager::openLongWithSLTP($size, $entry, $sl, $tp);
                         }

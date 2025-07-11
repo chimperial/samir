@@ -286,6 +286,7 @@ class FuturesClient extends API
                     'stopPrice' => $sl,
                     'positionSide' => 'LONG',
                     'closePosition' => 'true', // Use string 'true' per Binance API
+                    'timeInForce' => 'GTE_GTC',
                 ],
                 true
             );
@@ -304,6 +305,7 @@ class FuturesClient extends API
                     'stopPrice' => $tp,
                     'positionSide' => 'LONG',
                     'closePosition' => 'true', // Use string 'true' per Binance API
+                    'timeInForce' => 'GTE_GTC',
                 ],
                 true
             );
