@@ -59,7 +59,7 @@ class TestPositionSizeCalculator extends Command
     {
         $this->info('=== Testing Position Size Calculator ===');
         
-        $champion = Champion::find(9);
+        $champion = Champion::find(8);
         if (!$champion) {
             return;
         }
@@ -108,6 +108,12 @@ class TestPositionSizeCalculator extends Command
                     'entry' => 0.28688,
                     'stopLoss' => 0.28408,
                     'takeProfit' => 0.28964,
+                ],
+                [
+                    'name' => 'Test with specific values',
+                    'entry' => 2.8349,
+                    'stopLoss' => 2.7843,
+                    'takeProfit' => 2.9202,
                 ],
             ];
 

@@ -257,7 +257,16 @@ class FuturesClient extends API
 
     public function openLongWithSLTP(float $size, float $entry, ?float $sl = null, ?float $tp = null): array
     {
-        // Entry order (MARKET)
+        info('=== openLongWithSLTP Debug ===');
+        info('Input parameters:', [
+            'symbol' => $this->symbol,
+            'size' => $size,
+            'entry' => $entry,
+            'stop_loss' => $sl,
+            'take_profit' => $tp
+        ]);
+
+        // Entry order (LIMIT)
         // See: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api#http-request
         $entryOrder = $this->httpRequest(
             'fapi/v1/order',
@@ -267,15 +276,34 @@ class FuturesClient extends API
                 'symbol' => $this->symbol,
                 'side' => 'BUY',
                 'quantity' => $size,
-                'type' => 'MARKET', // MARKET order per Binance API
+                'type' => 'LIMIT', // LIMIT order per Binance API
+                'price' => $entry,
+                'timeInForce' => 'GTC',
                 'positionSide' => 'LONG',
             ],
             true
         );
 
+        info('Entry order placed:', [
+            'order_id' => $entryOrder['orderId'] ?? 'unknown',
+            'status' => $entryOrder['status'] ?? 'unknown',
+            'symbol' => $entryOrder['symbol'] ?? 'unknown',
+            'side' => $entryOrder['side'] ?? 'unknown',
+            'quantity' => $entryOrder['origQty'] ?? 'unknown',
+            'price' => $entryOrder['price'] ?? 'unknown',
+            'type' => $entryOrder['type'] ?? 'unknown'
+        ]);
+
         // Stop Loss (STOP_MARKET, close all)
         if ($sl) {
-            $this->httpRequest(
+            info('Placing stop loss order:', [
+                'stop_price' => $sl,
+                'type' => 'STOP_MARKET',
+                'side' => 'SELL',
+                'position_side' => 'LONG'
+            ]);
+
+            $slOrder = $this->httpRequest(
                 'fapi/v1/order',
                 'POST',
                 [
@@ -290,11 +318,27 @@ class FuturesClient extends API
                 ],
                 true
             );
+
+            info('Stop loss order placed:', [
+                'order_id' => $slOrder['orderId'] ?? 'unknown',
+                'status' => $slOrder['status'] ?? 'unknown',
+                'stop_price' => $slOrder['stopPrice'] ?? 'unknown',
+                'type' => $slOrder['type'] ?? 'unknown'
+            ]);
+        } else {
+            info('No stop loss order placed (sl parameter is null)');
         }
 
         // Take Profit (TAKE_PROFIT_MARKET, close all)
         if ($tp) {
-            $this->httpRequest(
+            info('Placing take profit order:', [
+                'stop_price' => $tp,
+                'type' => 'TAKE_PROFIT_MARKET',
+                'side' => 'SELL',
+                'position_side' => 'LONG'
+            ]);
+
+            $tpOrder = $this->httpRequest(
                 'fapi/v1/order',
                 'POST',
                 [
@@ -309,8 +353,18 @@ class FuturesClient extends API
                 ],
                 true
             );
+
+            info('Take profit order placed:', [
+                'order_id' => $tpOrder['orderId'] ?? 'unknown',
+                'status' => $tpOrder['status'] ?? 'unknown',
+                'stop_price' => $tpOrder['stopPrice'] ?? 'unknown',
+                'type' => $tpOrder['type'] ?? 'unknown'
+            ]);
+        } else {
+            info('No take profit order placed (tp parameter is null)');
         }
 
+        info('=== End openLongWithSLTP Debug ===');
         return $entryOrder;
     }
 }

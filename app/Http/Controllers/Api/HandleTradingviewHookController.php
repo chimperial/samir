@@ -59,9 +59,9 @@ class HandleTradingviewHookController extends Controller
 
                     if ('up' === $request->payloads['direction']) {
                         $capital = $champion->capital;
-                        $entry = round((float)$request->payloads['price'], TradingManager::getPricePrecision());
-                        $sl = isset($request->payloads['sl']) ? round((float)$request->payloads['sl'], TradingManager::getPricePrecision()) : null;
-                        $tp = isset($request->payloads['tp']) ? round((float)$request->payloads['tp'], TradingManager::getPricePrecision()) : null;
+                        $entry = (float)$request->payloads['price'];
+                        $sl = isset($request->payloads['sl']) ? (float)$request->payloads['sl'] : null;
+                        $tp = isset($request->payloads['tp']) ? (float)$request->payloads['tp'] : null;
                         
                         $sizeCalculator = new PositionSizeCalculator();
                         $size = $sizeCalculator->calculateSize($capital, $entry, $sl, $tp);

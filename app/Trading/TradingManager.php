@@ -204,6 +204,8 @@ class TradingManager
                 return 3;
             case 'BNBUSDT':
                 return 2;
+            case 'TONUSDT':
+                return 1;
             case 'DOGEUSDT':
                 return 0;
             case 'TRXUSDT':
@@ -222,6 +224,8 @@ class TradingManager
                 return 2;
             case 'BNBUSDT':
                 return 2;
+            case 'TONUSDT':
+                return 1;
             case 'DOGEUSDT':
                 return 5;
             case 'TRXUSDT':

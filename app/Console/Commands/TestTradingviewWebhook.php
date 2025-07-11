@@ -33,11 +33,11 @@ class TestTradingviewWebhook extends Command
         $payload = [
             'direction' => 'up',
             'client' => 'samir',
-            'symbol' => 'TRXUSDT',
+            'symbol' => 'TONUSDT',
             'indicator' => 'zen_pulse_long_5m',
-            'price' => '0.27113',
-            'sl' => '0.27013',
-            'tp' => '0.27213',
+            'price' => '2.8349',
+            'sl' => '2.7843',
+            'tp' => '3.1',
         ];
 
         // Set up champion context for TradingManager
