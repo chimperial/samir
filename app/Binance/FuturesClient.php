@@ -266,7 +266,7 @@ class FuturesClient extends API
             'take_profit' => $tp
         ]);
 
-        // Entry order (LIMIT)
+        // Entry order (MARKET)
         // See: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api#http-request
         $entryOrder = $this->httpRequest(
             'fapi/v1/order',
@@ -276,9 +276,7 @@ class FuturesClient extends API
                 'symbol' => $this->symbol,
                 'side' => 'BUY',
                 'quantity' => $size,
-                'type' => 'LIMIT', // LIMIT order per Binance API
-                'price' => $entry,
-                'timeInForce' => 'GTC',
+                'type' => 'MARKET', // MARKET order per Binance API
                 'positionSide' => 'LONG',
             ],
             true
