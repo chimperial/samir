@@ -21,7 +21,7 @@ class PositionSizeCalculator
         ?float $stopLoss = null,
         ?float $takeProfit = null,
         float $riskMultiplier = 75,
-        float $riskPercentage = 0.0025
+        float $riskPercentage = 0.005
     ): float {
         info('=== PositionSizeCalculator Debug ===');
         info("Input parameters:");
@@ -35,7 +35,7 @@ class PositionSizeCalculator
         // If no stop loss is provided or entry equals stop loss, use minimum size
         if (!$stopLoss || $entry == $stopLoss) {
             $minSize = TradingManager::minSize();
-            $precision = TradingManager::getPrecision();
+            $precision = TradingManager::getPrecision('quantity');
             info("Using minimum size (no stop loss or entry equals stop loss)");
             info("  Min Size: $minSize");
             info("  Precision: $precision");
@@ -69,7 +69,7 @@ class PositionSizeCalculator
         
         // Calculate size
         $size = $positionNotional / $entry;
-        $precision = TradingManager::getPrecision();
+        $precision = TradingManager::getPrecision('quantity');
         $finalSize = round($size, $precision);
         
         info("Size calculation:");

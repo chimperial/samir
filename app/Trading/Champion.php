@@ -34,8 +34,14 @@ class Champion extends Model
 
     public function getFundingIncomeAttribute()
     {
+        $firstOrder = $this->orders()->first();
+        
+        if (!$firstOrder) {
+            return 0;
+        }
+        
         return Income::query()
-            ->where('time', '>=', $this->orders()->first()->update_time)
+            ->where('time', '>=', $firstOrder->update_time)
             ->where('symbol', '=', $this->symbol)
             ->get()
             ->sum('income');

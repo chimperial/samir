@@ -173,7 +173,7 @@ class TradingManager
     {
         $binanceOrder = self::binance()->openLong(
             self::minSize(),
-            round(self::currentPrice() - self::priceGap(), self::getPricePrecision()),
+            round(self::currentPrice() - self::priceGap(), self::getPrecision('price')),
         );
 
         self::upsertOrder($binanceOrder);
@@ -186,53 +186,47 @@ class TradingManager
     {
         $binanceOrder = self::binance()->openShort(
             self::minSize(),
-            round(self::currentPrice() + self::priceGap(), self::getPricePrecision()),
+            round(self::currentPrice() + self::priceGap(), self::getPrecision('price')),
         );
 
         self::upsertOrder($binanceOrder);
     }
 
     /**
-     * @throws Exception
+     * Get precision for quantity or price based on symbol
+     * 
+     * @param string $type 'quantity' for quantity precision, 'price' for price precision
+     * @return int
      */
-    public static function getPrecision(): int
+    public static function getPrecision(string $type = 'quantity'): int
     {
-        switch (self::$champion->symbol) {
-            case 'BTCUSDT':
-                return 5;
-            case 'ETHUSDT':
-                return 3;
-            case 'BNBUSDT':
-                return 2;
-            case 'TONUSDT':
-                return 1;
-            case 'DOGEUSDT':
-                return 0;
-            case 'TRXUSDT':
-                return 0;
-            default:
-                return 2;
+        $precisionMap = [
+            'BTCUSDT' => ['quantity' => 5, 'price' => 1],
+            'ETHUSDT' => ['quantity' => 3, 'price' => 2],
+            'BNBUSDT' => ['quantity' => 2, 'price' => 2],
+            'SOLUSDT' => ['quantity' => 2, 'price' => 4],
+            'TONUSDT' => ['quantity' => 1, 'price' => 8],
+            'AAVEUSDT' => ['quantity' => 1, 'price' => 3],
+            'DOGEUSDT' => ['quantity' => 0, 'price' => 5],
+            'TRXUSDT' => ['quantity' => 0, 'price' => 5],
+        ];
+
+        $symbol = self::$champion->symbol;
+        
+        if (isset($precisionMap[$symbol])) {
+            return $precisionMap[$symbol][$type];
         }
+
+        // Default precision for unknown symbols
+        return $type === 'price' ? 2 : 2;
     }
 
+    /**
+     * @deprecated Use getPrecision('price') instead
+     */
     public static function getPricePrecision(): int
     {
-        switch (self::$champion->symbol) {
-            case 'BTCUSDT':
-                return 1;
-            case 'ETHUSDT':
-                return 2;
-            case 'BNBUSDT':
-                return 2;
-            case 'TONUSDT':
-                return 1;
-            case 'DOGEUSDT':
-                return 5;
-            case 'TRXUSDT':
-                return 5;
-            default:
-                return 2;
-        }
+        return self::getPrecision('price');
     }
 
     /**
@@ -240,7 +234,7 @@ class TradingManager
      */
     public static function minSize(): float
     {
-        return round(self::$champion->grind / self::currentPrice(), self::getPrecision());
+        return round(self::$champion->grind / self::currentPrice(), self::getPrecision('quantity'));
     }
 
     /**
@@ -248,7 +242,7 @@ class TradingManager
      */
     public static function currentPrice(): float
     {
-        return round(self::binance()->getMarkPrice(), self::getPricePrecision());
+        return round(self::binance()->getMarkPrice(), self::getPrecision('price'));
     }
 
     /**
@@ -440,13 +434,13 @@ class TradingManager
         
         // If position notional is close to grind (within 20%), use position notional instead
         $size = abs($positionNotional - $grind) / $grind <= 0.20 
-            ? round($positionNotional / self::currentPrice(), self::getPrecision())
+            ? round($positionNotional / self::currentPrice(), self::getPrecision('quantity'))
             : self::minSize();
 
         info('Calculated trade size:', [
             'size' => $size,
             'using_position_notional' => abs($positionNotional - $grind) / $grind <= 0.20,
-            'price_precision' => self::getPrecision(),
+            'quantity_precision' => self::getPrecision('quantity'),
             'current_price' => self::currentPrice()
         ]);
 
@@ -485,13 +479,13 @@ class TradingManager
         
         // If position notional is close to grind (within 20%), use position notional instead
         $size = abs($positionNotional - $grind) / $grind <= 0.20 
-            ? round($positionNotional / self::currentPrice(), self::getPrecision())
+            ? round($positionNotional / self::currentPrice(), self::getPrecision('quantity'))
             : self::minSize();
 
         info('Calculated trade size:', [
             'size' => $size,
             'using_position_notional' => abs($positionNotional - $grind) / $grind <= 0.20,
-            'price_precision' => self::getPrecision(),
+            'quantity_precision' => self::getPrecision('quantity'),
             'current_price' => self::currentPrice()
         ]);
 

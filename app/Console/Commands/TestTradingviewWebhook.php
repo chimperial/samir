@@ -35,9 +35,9 @@ class TestTradingviewWebhook extends Command
             'client' => 'samir',
             'symbol' => 'TONUSDT',
             'indicator' => 'zen_pulse_long_5m',
-            'price' => '2.8349',
-            'sl' => '2.7843',
-            'tp' => '3.1',
+            'price' => '3.2709',
+            'sl' => '3.2000000003',
+            'tp' => '3.3364444444',
         ];
 
         // Set up champion context for TradingManager

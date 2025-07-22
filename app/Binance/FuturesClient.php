@@ -258,12 +258,21 @@ class FuturesClient extends API
     public function openLongWithSLTP(float $size, float $entry, ?float $sl = null, ?float $tp = null): array
     {
         info('=== openLongWithSLTP Debug ===');
+        
+        // Round stop loss and take profit to correct precision
+        $pricePrecision = \App\Trading\TradingManager::getPrecision('price');
+        $roundedSl = $sl ? round($sl, $pricePrecision) : null;
+        $roundedTp = $tp ? round($tp, $pricePrecision) : null;
+        
         info('Input parameters:', [
             'symbol' => $this->symbol,
             'size' => $size,
             'entry' => $entry,
             'stop_loss' => $sl,
-            'take_profit' => $tp
+            'rounded_stop_loss' => $roundedSl,
+            'take_profit' => $tp,
+            'rounded_take_profit' => $roundedTp,
+            'price_precision' => $pricePrecision
         ]);
 
         // Entry order (MARKET)
@@ -293,9 +302,10 @@ class FuturesClient extends API
         ]);
 
         // Stop Loss (STOP_MARKET, close all)
-        if ($sl) {
+        if ($roundedSl) {
             info('Placing stop loss order:', [
-                'stop_price' => $sl,
+                'original_stop_price' => $sl,
+                'rounded_stop_price' => $roundedSl,
                 'type' => 'STOP_MARKET',
                 'side' => 'SELL',
                 'position_side' => 'LONG'
@@ -309,7 +319,7 @@ class FuturesClient extends API
                     'symbol' => $this->symbol,
                     'side' => 'SELL',
                     'type' => 'STOP_MARKET', // STOP_MARKET order per Binance API
-                    'stopPrice' => $sl,
+                    'stopPrice' => $roundedSl,
                     'positionSide' => 'LONG',
                     'closePosition' => 'true', // Use string 'true' per Binance API
                     'timeInForce' => 'GTE_GTC',
@@ -328,9 +338,10 @@ class FuturesClient extends API
         }
 
         // Take Profit (TAKE_PROFIT_MARKET, close all)
-        if ($tp) {
+        if ($roundedTp) {
             info('Placing take profit order:', [
-                'stop_price' => $tp,
+                'original_stop_price' => $tp,
+                'rounded_stop_price' => $roundedTp,
                 'type' => 'TAKE_PROFIT_MARKET',
                 'side' => 'SELL',
                 'position_side' => 'LONG'
@@ -344,7 +355,7 @@ class FuturesClient extends API
                     'symbol' => $this->symbol,
                     'side' => 'SELL',
                     'type' => 'TAKE_PROFIT_MARKET', // TAKE_PROFIT_MARKET order per Binance API
-                    'stopPrice' => $tp,
+                    'stopPrice' => $roundedTp,
                     'positionSide' => 'LONG',
                     'closePosition' => 'true', // Use string 'true' per Binance API
                     'timeInForce' => 'GTE_GTC',
