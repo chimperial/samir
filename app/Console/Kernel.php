@@ -18,7 +18,7 @@ class Kernel extends ConsoleKernel
         //$schedule->command('binance:balances')->hourly();
         $schedule->command('futures:profits')->hourly();
         $schedule->command('futures:import')->everyTenMinutes();
-        $schedule->command('account')->hourly();
+        $schedule->command('account')->everyTenMinutes();
     }
 
     /**

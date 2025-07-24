@@ -1,5 +1,7 @@
 <template>
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <Head title="Champion Dashboard" />
+        
         <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
             <div class="px-4 py-6 sm:px-0">
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Champion Dashboard</h1>
@@ -50,6 +52,31 @@
                                     </td>
                                 </tr>
                             </tbody>
+                            <tfoot class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-semibold text-gray-900 dark:text-white">Total ({{ testData }})</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <!-- Type column - empty for footer -->
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-semibold text-gray-900 dark:text-white">${{ totalCapital }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-semibold" :class="totalProfit < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">${{ totalProfit }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-semibold" :class="parseFloat(totalApy.replace(/,/g, '')) < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">{{ totalApy }}%</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <!-- Age column - empty for footer -->
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <!-- Actions column - empty for footer -->
+                                    </td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -96,11 +123,12 @@
 </template>
 
 <script>
-import { Link } from '@inertiajs/inertia-vue3';
+import { Link, Head } from '@inertiajs/inertia-vue3';
 
 export default {
     components: {
-        Link
+        Link,
+        Head
     },
     
     props: {
@@ -108,6 +136,53 @@ export default {
             type: Array,
             required: true
         }
+    },
+    
+    computed: {
+        testData() {
+            return this.champions.length > 0 ? 'Data available' : 'No data';
+        },
+        
+        totalCapital() {
+            const total = this.champions.reduce((sum, champion) => {
+                // Handle both string and number formats
+                let capital = champion.current_capital;
+                if (typeof capital === 'string') {
+                    capital = parseFloat(capital.replace(/,/g, ''));
+                }
+                return sum + (isNaN(capital) ? 0 : capital);
+            }, 0);
+            return total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+        
+        totalProfit() {
+            const total = this.champions.reduce((sum, champion) => {
+                // Handle both string and number formats
+                let profit = champion.profit;
+                if (typeof profit === 'string') {
+                    profit = parseFloat(profit.replace(/,/g, ''));
+                }
+                return sum + (isNaN(profit) ? 0 : profit);
+            }, 0);
+            return total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+        
+        totalApy() {
+            const total = this.champions.reduce((sum, champion) => {
+                let apy = champion.apy;
+                if (typeof apy === 'string') {
+                    apy = parseFloat(apy.replace(/,/g, ''));
+                }
+                return sum + (isNaN(apy) ? 0 : apy);
+            }, 0);
+            return total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+    },
+    
+    mounted() {
+        console.log('Champions data:', this.champions);
+        console.log('First champion current_capital:', this.champions[0]?.current_capital);
+        console.log('First champion profit:', this.champions[0]?.profit);
     }
 }
 </script> 

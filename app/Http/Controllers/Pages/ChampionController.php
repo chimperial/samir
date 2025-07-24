@@ -17,12 +17,16 @@ class ChampionController
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($champion) {
+                $totalProfit = $champion->profit + $champion->income - $champion->fee;
+                $hoursSinceCreation = $champion->created_at->diffInHours(now());
+                $apy = $hoursSinceCreation > 0 ? ($totalProfit / $champion->capital) / $hoursSinceCreation * 8760 * 100 : 0;
+                
                 return (object)[
                     'id' => $champion->id,
                     'remain_capital' => number_format($champion->current_capital - $champion->onduty, 2),
                     'capital' => $champion->capital,
                     'roi' => number_format($champion->roi * 100, 2),
-                    'profit' => number_format($champion->profit + $champion->income - $champion->fee, 2),
+                    'profit' => number_format($totalProfit, 2),
                     'name' => $champion->name,
                     'archetype' => $champion->archetype,
                     'onduty' => number_format($champion->onduty, 2),
@@ -31,7 +35,7 @@ class ChampionController
                     'fee' => number_format($champion->fee, 2),
                     'income' => number_format($champion->income, 2),
                     'current_capital' => number_format($champion->current_capital, 2),
-                    'apy' => number_format($champion->roi / $champion->created_at->diffInHours(now()) * 876000, 2),
+                    'apy' => number_format($apy, 2),
                     'entry' => number_format($champion->entry, 4),
                     'avatar_url' => $champion->avatar_url
                 ];
@@ -74,13 +78,17 @@ class ChampionController
                 ];
             });
 
+        $totalProfit = $champion->profit + $champion->income - $champion->fee;
+        $hoursSinceCreation = $champion->created_at->diffInHours(now());
+        $apy = $hoursSinceCreation > 0 ? ($totalProfit / $champion->capital) / $hoursSinceCreation * 8760 * 100 : 0;
+        
         return Jetstream::inertia()->render($request, 'Champion/Show', [
             'background' => $champion->avatar_url,
             'champion' => (object)[
                 'remain_capital' => number_format($champion->current_capital - $champion->onduty, 2),
                 'capital' => $champion->capital,
                 'roi' => number_format($champion->roi * 100, 2),
-                'profit' => number_format($champion->profit, 2),
+                'profit' => number_format($totalProfit, 2),
                 'name' => $champion->name,
                 'archetype' => $champion->archetype,
                 'onduty' => number_format($champion->onduty, 2),
@@ -89,7 +97,7 @@ class ChampionController
                 'fee' => number_format($champion->fee, 2),
                 'income' => number_format($champion->income, 2),
                 'current_capital' => number_format($champion->current_capital, 2),
-                'apy' => number_format($champion->roi / $champion->created_at->diffInHours(now()) * 876000, 2),
+                'apy' => number_format($apy, 2),
                 'entry' => number_format($champion->entry, 4)
             ],
             'orders' => $orders
