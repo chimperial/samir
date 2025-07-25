@@ -58,15 +58,15 @@ class HandleTradingviewHookController extends Controller
                     }
 
                     if ('up' === $request->payloads['direction']) {
-                        $capital = $champion->capital;
+                        $currentCapital = $champion->current_capital;
                         $entry = (float)$request->payloads['price'];
                         $sl = isset($request->payloads['sl']) ? (float)$request->payloads['sl'] : null;
                         $tp = isset($request->payloads['tp']) ? (float)$request->payloads['tp'] : null;
                         
                         $sizeCalculator = new PositionSizeCalculator();
-                        $size = $sizeCalculator->calculateSize($capital, $entry, $sl, $tp);
+                        $size = $sizeCalculator->calculateSize($currentCapital, $entry, $sl, $tp);
                         
-                        if (!TradingManager::hasOpenLongPosition()) {
+                        if (!TradingManager::hasOpenLongPosition() && $currentCapital >= 0.1) {
                             TradingManager::openLongWithSLTP($size, $entry, $sl, $tp);
                         }
                     }
